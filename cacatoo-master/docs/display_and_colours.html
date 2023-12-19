@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cacatoo manual</title><link rel="icon" type="image/png" href="images/favicon.png" />
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/menu.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">    
+    <style>
+        #colorbox{
+            font-weight: bold;text-align: center; vertical-align: center; top:50%;display:inline-block; width:150px; 
+            border: 1px solid black;
+            padding: 10px;
+            border-radius: 8px 0px 8px 0px;
+            margin: 10px;
+        }    
+    </style>
+    <link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
+    <script src="scripts/jquery.js"></script>    
+    <script src="scripts/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+    <script src="scripts/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+</head>
+<body>
+    <!-- --------------------- START MENU. Couldnt get it to load dynamically, so this needs to be replaced in every HTML file upon changing --------------------- -->
+    <header class="header" id="btnNav"><buton class="header__button" id="btnNav" type="button"><i class="material-icons">menu</i></buton></header>
+    
+    <nav class="nav"><div class="nav__links">            
+        <a href="#" class="nav__head"><i id="btnNavclose" class="material-icons" style="cursor:pointer"> menu </i> Cacatoo </a>
+        <a href="index.html"  id="nav__link" class="nav__link">Home</a>
+        <a href="https://github.com/bramvandijk88/cacatoo" id="nav__link" target="_blank" class="nav__link"> Source code (Github)</a>
+        <!-- <a href="https://replit.com/@bramvandijk88/Cacatoo-IBMs-with-examples" id="nav__link" target="_blank" class="nav__link"> Replit </a> -->
+        <a href="#" class="nav__head"><i class="material-icons"> play_circle_outline </i> Examples</a>
+        <a href="example_predator_prey.html"  id="nav__link" class="nav__link"> Predator prey</a>
+        <a href="example_colony_growth.html"  id="nav__link" class="nav__link"> Colony growth</a>
+        <a href="example_mutational_jackpot.html"  id="nav__link" class="nav__link"> Mutational jackpot</a>
+        <a href="example_cooperation.html"  id="nav__link" class="nav__link"> Cooperation</a>
+        <a href="example_TEs.html"  id="nav__link" class="nav__link"> Transposon evolution</a>
+        <a href="examples_jsfiddle.html" id="nav__link" class="nav__link"> More examples (JSFiddle)</a>       
+       <a href="#" class="nav__head"><i class="material-icons"> grid_on </i> How to Cacatoo </a>
+        <a href="overview.html" class="nav__link"> Tutorials (Blog style)</a>
+        <a href="videos.html" class="nav__link"> Tutorials (Youtube)</a>                              
+        <a href="list_of_options.html" class="nav__link"> All configuration options</a>
+        <a href="populating_the_grid.html" class="nav__link"> Populating the grid</a>
+        <a href="display_and_colours.html" class="nav__link"> Display and colours</a>
+        <a href="neighbourhood_retrieval.html" class="nav__link"> Neighbourhood retrieval</a>
+        <a href="random_numbers.html" class="nav__link"> Using random numbers </a>
+        <a href="grid_events.html" class="nav__link"> Grid events</a>
+        <a href="adding_ui_elements.html" class="nav__link"> Adding UI elements</a>
+        <a href="working_with_odes.html" class="nav__link"> Working with ODEs</a>            
+        <a href="jsdocs/index.html" id="nav__headlink" target="_blank" class="nav__headlink"><i class="material-icons">data_object </i> Full JS-Docs</a>
+    </div><div class="nav__overlay"></div></nav>
+    
+    <script>         
+        document.addEventListener("DOMContentLoaded", () => {
+            const nav = document.querySelector(".nav");
+            document.querySelector("#btnNav").addEventListener("click", () => {
+                nav.classList.add("nav--open");
+            });
+            document.querySelector(".nav__overlay").addEventListener("click", () => {
+                nav.classList.remove("nav--open");
+            });
+            document.querySelector("#btnNavclose").addEventListener("click", () => {
+                nav.classList.remove("nav--open");
+            });    
+            var all_links = document.getElementsByClassName("nav__link");            
+            var hide_menu = function() {
+                 nav.classList.remove("nav--open");
+            };    
+            for (var i = 0; i < all_links.length; i++) {
+                all_links[i].addEventListener('click', hide_menu, false);
+            }
+        });
+    </script>
+    <!-- --------------------- END MENU --------------------- -->
+    <div id="main">
+        
+        <h1 class="page-title">Display and colours</h1>
+
+        <section>
+            <h2> Setting up colours maps:</h2>
+
+            <article>
+                In Cacatoo, the "state" of grid points (i.e. the properties of individuals) are linked to colours by setting up a colour map. <br><br>
+                In this map, <b>state-colour</b> pairs are stored, where a <b>state</b> can be:
+                <ul>
+                    <li> whole numbers (e.g. <b>'0'</b> or <b>'1'</b> for dead and living individuals), </li>
+                    <li> real numbers (e.g. <b>5.0</b> for the 'uptake rate' of cells in a colony), </li>
+                    <li> the names of species (e.g. <b>'predator'</b> and <b>'prey'</b>)</li>
+                </ul>
+                A <b>colour</b> can be:
+                <ul>
+                    <li> The name of one of the default colours in Cacatoo (see <a href="#palette">colour table</a>), </li>
+                    <li> An array of length 3 with RGB values (e.g. <b>[255,0,0]</b> for red), </li>
+                    <li> A hexadecimal color code (e.g. <b>#00FF00</b> for green), </li>
+                </ul>    <a id="palette"></a>
+
+                <h4> Default colour map:</h4>                
+                <div style="width:90%">
+                <div id="colorbox" style="color:white; background-color: rgb(0, 0, 0);"> 0: black </div>
+                <div id="colorbox" style="color:black; background-color: rgb(255, 255, 255);"> 1: white </div>
+                <div id="colorbox" style="color:black; background-color: rgb(255, 0, 0);"> 2: red </div>                
+                <div id="colorbox" style="color:white; background-color: rgb(0, 0, 255);"> 3: blue </div>
+                <div id="colorbox" style="color:black; background-color: rgb(0, 255, 0);"> 4: green </div>                
+                <div id="colorbox" style="color:white; background-color: rgb(60, 60, 60);"> 5: darkgrey </div>
+                <div id="colorbox" style="color:black; background-color: rgb(180, 180, 180);"> 6: lightgrey </div>
+                <div id="colorbox" style="color:black; background-color: rgb(148, 0, 211);"> 7: violet </div>
+                <div id="colorbox" style="color:black; background-color: rgb(64, 224, 208);"> 8: turquoise </div>
+                <div id="colorbox" style="color:black; background-color: rgb(255, 165, 0);"> 9: orange </div>
+                <div id="colorbox" style="color:black; background-color: rgb(240, 200, 0);"> 10: gold </div>
+                <div id="colorbox" style="color:black; background-color: rgb(125, 125, 125);"> 11: grey </div>
+                <div id="colorbox" style="color:black; background-color: rgb(255, 255, 0);"> 12: yellow </div>
+                <div id="colorbox" style="color:black; background-color: rgb(0, 255, 255);"> 13: cyan </div>
+                <div id="colorbox" style="color:black; background-color: rgb(192, 192, 192);"> 14: silver </div>
+                <div id="colorbox" style="color:white; background-color: rgb(0, 128, 0);"> 15: darkgreen </div>
+                <div id="colorbox" style="color:white; background-color: rgb(128, 128, 0);"> 16: olive </div>
+                <div id="colorbox" style="color:white; background-color: rgb(0, 128, 128);"> 17: teal </div>
+                <div id="colorbox" style="color:white; background-color: rgb(0, 0, 128);"> 18: navy </div>
+
+                </div>
+               <br> To avoid users having to define colours manually, a set of useful functions is provided to link states to either default colours (see <a href="#palette">colour table</a>), 
+                random colours, or colour gradients. Firstly, one can assign colours directly in the configuration file by assigning a property 'default', 'random', 'inferno', or 'viridis'. For example,
+                to generate 50 random colours:
+                <ul><h5 class="name"><span class="signature">
+                    // generate 50 random colours<br>
+                    let config = { 
+                        <div style="margin-left:40px;">
+                        title="MyModel",<br>
+                        ncol:100, <br>
+                        nrow:100,<br>
+                        num_colours: 50,<br>    
+                        statecolours: { colour: 'random' }  <br>
+                        </div>
+                        }
+                </span></ul>                  
+
+                One can also each state-colour pair individually:
+                <ul><h5 class="name"><span class="signature">
+                    let config = { 
+                        <div style="margin-left:40px;">
+                        title="MyModel",<br>
+                        ncol:100, <br>
+                        nrow:100,<br>
+                        statecolours: { colour: 
+                            <div style="margin-left:40px;">1: 'red', <br>2: '#EE00FF',  <br>3: [0,0,145], ... </div>} <br>
+                        </div>
+                        }
+                    </span></ul>  
+
+                Colour gradients can also be manually defined by using one of the following functions:    
+                <br>                
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sim.model.colourGradient<span class="signature">(statename, num_colours, array_1, array_2, ..., array_n)</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sim.model.colourVidiris<span class="signature">(statename, num_colours)</span><span class="type-signature"></span></h5>
+                    <br>Which is for example done in the example "ode_lotka.html"
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>sim.lotka.colourGradient<span class="signature">('numpred', 200, [0, 0, 0], [240, 200, 0])</span><span class="type-signature"></span></h5>
+                </ul>
+                <br>
+                
+                Once the colour maps have been set up, it is time to set up the display.<br><br>
+
+
+                <h2> Setting up a display for (simple) discrete states:</h2>
+                
+                After having set up your colours for a certain property (e.g. 'alive' in Game of Life), a display can be added like this:<br>
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.createDisplay<span class="signature">(name_of_gridmodel, property, title)</span><span class="type-signature"></span></h5>
+                <br>Which is for example done in the example "cheater.js"
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.createDisplay<span class="signature">("cheater", "species", "Mutualists and cheater")</span><span class="type-signature"></span></h5>
+<br>
+                <h2> Setting up a display for continuous variables:</h2>
+
+                Because setting up a display can sometimes have many more parameters, one can instead passes a configuration object (much like how the simulation is configured), as seen in 
+                the example "ode_turing.html":
+                                
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.turing.colourViridis<span class="signature">("activator",100)</span><span class="type-signature"></span></h5>                
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.createDisplay_continuous<span class="signature">({model:"turing", property:"activator", label:"Activator density", minval:0, maxval:100})</span><span class="type-signature"></span></h5>
+                <br>Or you can combine these two line by passing a "fill" to the last function:
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.createDisplay_continuous<span class="signature">({model:"turing", property:"activator", label:"Activator density", minval:0, maxval:100, num_colours: 100, fill:"viridis", na_colour: 'black'})</span><span class="type-signature"></span></h5>
+                <br>You can also draw dots, instead of pixels:
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.createDisplay_continuous<span class="signature">({model:"turing", property:"activator", label:"Activator density", minval:0, maxval:100, num_colours: 100, fill:"viridis", na_colour: 'black', drawdots:true, stroke:true, strokeStyle: 'yellow', strokeWidth: 2, radius:"internal_resources", min_radius: 1, max_radius:6, scale_radius: 5})</span><span class="type-signature"></span></h5>
+                <br>This way of setting up displays also works for discrete variables, like in Game of Life:
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.createDisplay_discrete<span class="signature"></span>({model:"gol",property:"alive",label:"Game of life (white=alive)",drawdots:true,radius:5})</span><span class="type-signature"></span></h5>
+                <br>
+            
+                <h2> Setting up space-time plot:</h2>
+
+                A space-time plot allows you to track how your grid changes over time. A single column (y-axis) from the original grid is plotted for each time point (on the x-axis). 
+
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.spaceTimePlot<span class="signature">(gridmodel, name_of_original_grid, name_of_spacetime_grid, which_column, width) </span><span class="type-signature"></span></h5>
+                <br>Which is for example done in the example "spirals.html"
+                <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span> sim.spaceTimePlot<span class="signature">("spirals", "Colours represent different species", "Space-time plot", 100, sim.ncol*2) </span><span class="type-signature"></span></h5>
+                
+                              
+                
+            </article>
+        </section>
+
+        
+        
+    </div>
+    <div id="Navigator"></div>
+    <br class="clear">
+    
+    <script> prettyPrint();</script>
+    <script src="scripts/linenumber.js"> </script>
+</body>
+</html>

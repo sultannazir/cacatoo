@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cacatoo documentation</title><link rel="icon" type="image/png" href="images/favicon.png" />
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/menu.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">    
+    <link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
+    <script src="scripts/jquery.js"></script>    
+    <script src="scripts/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+    <script src="scripts/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+
+    <script>     
+    var sim;
+
+    var A2B =1.0                    
+    var B2A =1.0                    
+    var B2C =1.5                    
+    var stay_empty=10.0              
+    var death=0.1                  
+    var mdif_interval=0  
+    
+    function cacatoo()
+    {    
+        
+        let config = {                                                      // Configuration of your model. How large is the grid, how long will it run, what colours will the critters be, etc. 
+                title: "Cacatoo documentation",
+                description: "",
+                maxtime: 100000,
+                ncol : 120,            
+                nrow : 120,		                                            // dimensions of the grid to build                
+                scale : 3,				                                    // scale of the grid (nxn pixels per grid point)     
+                fpsmeter: false,       
+                statecolours: {'species':{1:"#DDDDDD",                      // Sets up colours of states (here 1,2,3 = A,B,C). Can be a colour name or a hexadecimal colour. 
+                                      2:"red",                          // If your state it not defined, it won't be drawn and you'll see the grid-background colour (default: black)
+                                      3:"#3030ff"}}              
+        }
+
+        
+        sim = new Simulation(config)                                        // Initialise a new Simulation instance with configuration given above 
+        
+        sim.makeGridmodel("cheaters")                                        // Make a new gridmodel named cheater
+        sim.initialGrid(sim.cheaters,'species',1,0.33,2,0.33,3,0.33)         // Place the three 'species' in grid points (33% A, 33% B, 33% C)            
+        sim.createDisplay("cheaters","species","Cacatoo example")                              // Display the 'species' property of the cheater grid
+
+        sim.cheaters.nextState = function (i, j)                               // Define the next-state function. This example is two mutualists and a cheater
+        {
+            // let pA, pB, pC, psum             
+            let state = this.grid[i][j].species;
+            if (state == 0)                                                   // If there is no species here
+            {
+                sumA = this.countMoore8(this, i, j, 'species',1);               // Count the number of species 1 (mutualist A)
+                sumB = this.countMoore8(this, i, j, 'species',2);               // Count the number of species 2 (mutualist B)
+                sumC = this.countMoore8(this, i, j, 'species',3);               // Count the number of species 3 (mutualist C)
+
+                pA = (B2A * sumB) * sumA;                                        // Chance that A wins
+                pB = (A2B * sumA) * sumB;                                        // Chance that B wins
+                pC = (B2C * sumB) * sumC;                                        // Chance that C wins
+                psum = pA + pB + pC + stay_empty;                                   // Total = pA+pB+pC+stay_empty (scales the chance that nothing happens during competition)
+
+                ran = this.rng.random();                                     // Draw a single random number which decides 1 winner from "roulette wheel" (see below)
+
+                if (ran < pA / psum)                                           // <-ran->                                     (A wins)
+                    this.grid[i][j].species = 1                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+                else if (ran < (pA + pB) / psum)                                 //        <-ran->                              (B wins)
+                    this.grid[i][j].species = 2                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+                else if (ran < (pA + pB + pC) / psum)                              //               <--ran-->                     (C wins)
+                    this.grid[i][j].species = 3                             // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN
+                //                        <-----ran----->      (no winner, spot stays empty for now)
+                // AAAAAAABBBBBBBCCCCCCCCCNNNNNNNNNNNNNNN      
+            }
+
+            if (this.rng.random() < death)                                    // Stochastic death (species become 0, which is an empty space for the next step to compete over)
+                this.grid[i][j].species = 0
+        }
+
+       
+        sim.cheaters.update = function()
+        {        
+            this.synchronous()                                              // Update all grid points based on the next-state function (defined above)
+            if(this.time%mdif_interval==0) this.MargolusDiffusion()         // Every so often mix individuals a bit
+            this.updateGraphs()                                             // OPTIONAL: add some graphs (see function below)
+        }
+        
+        sim.cheaters.updateGraphs = function()
+        {
+            // Let's count some stuff every update
+            let sumA = 0
+            let sumB = 0
+            let sumC = 0
+            for(let i=0;i<this.nc;i++)          // i are columns
+                for(let j=0;j<this.nr;j++)      // j are rows
+                {     
+                    if(this.grid[i][j].species==1)  sumA++
+                    else if(this.grid[i][j].species==2)  sumB++
+                    else if(this.grid[i][j].species==3)  sumC++
+                }
+                
+            // Update the plots. If the plot do not yet exist, a new plot will be automatically added by cacatoo
+            this.plotPopsizes('species',[1,2,3]) 
+           
+        }
+            
+        /**
+        * OPTIONAL: add some buttons and sliders so you can play with your model easily
+        */
+        sim.addButton("pause/continue",function() {sim.toggle_play()})              // Add a button that calls function "display" in "model"
+        sim.addButton("mix once",function() { sim.cheaters.perfectMix()})            // Add a button that calls function "perfectMix" in "model.cheater"    
+
+        sim.addButton("well-mix",function() { sim.toggle_mix()})                    // Add a button that calls function "perfectMix" in "model.cheater"  
+
+        sim.addSlider("A2B")
+        sim.addSlider("B2A")
+        sim.addSlider("B2C")
+        
+       // sim.addSlider("stay_empty",0.00,20.00,0.01)
+        sim.addSlider("death", 0.00, 1.00, 0.001)        
+        sim.start()
+    }
+
+        </script>
+</head>
+
+<body onload="cacatoo()">        
+    
+    <!-- --------------------- START MENU. Couldnt get it to load dynamically, so this needs to be replaced in every HTML file upon changing --------------------- -->
+    <header class="header" id="btnNav"><buton class="header__button" id="btnNav" type="button"><i class="material-icons">menu</i></buton></header>
+    
+    <nav class="nav"><div class="nav__links">            
+        <a href="#" class="nav__head"><i id="btnNavclose" class="material-icons" style="cursor:pointer"> menu </i> Cacatoo </a>
+        <a href="index.html"  id="nav__link" class="nav__link">Home</a>
+        <a href="https://github.com/bramvandijk88/cacatoo" id="nav__link" target="_blank" class="nav__link"> Source code (Github)</a>
+        <!-- <a href="https://replit.com/@bramvandijk88/Cacatoo-IBMs-with-examples" id="nav__link" target="_blank" class="nav__link"> Replit </a> -->
+        <a href="#" class="nav__head"><i class="material-icons"> play_circle_outline </i> Examples</a>
+        <a href="example_predator_prey.html"  id="nav__link" class="nav__link"> Predator prey</a>
+        <a href="example_colony_growth.html"  id="nav__link" class="nav__link"> Colony growth</a>
+        <a href="example_mutational_jackpot.html"  id="nav__link" class="nav__link"> Mutational jackpot</a>
+        <a href="example_cooperation.html"  id="nav__link" class="nav__link"> Cooperation</a>
+        <a href="example_TEs.html"  id="nav__link" class="nav__link"> Transposon evolution</a>
+        <a href="examples_jsfiddle.html" id="nav__link" class="nav__link"> More examples (JSFiddle)</a>       
+       <a href="#" class="nav__head"><i class="material-icons"> grid_on </i> How to Cacatoo </a>
+        <a href="overview.html" class="nav__link"> Tutorials (Blog style)</a>
+        <a href="videos.html" class="nav__link"> Tutorials (Youtube)</a>                              
+        <a href="list_of_options.html" class="nav__link"> All configuration options</a>
+        <a href="populating_the_grid.html" class="nav__link"> Populating the grid</a>
+        <a href="display_and_colours.html" class="nav__link"> Display and colours</a>
+        <a href="neighbourhood_retrieval.html" class="nav__link"> Neighbourhood retrieval</a>
+        <a href="random_numbers.html" class="nav__link"> Using random numbers </a>
+        <a href="grid_events.html" class="nav__link"> Grid events</a>
+        <a href="adding_ui_elements.html" class="nav__link"> Adding UI elements</a>
+        <a href="working_with_odes.html" class="nav__link"> Working with ODEs</a>            
+        <a href="jsdocs/index.html" id="nav__headlink" target="_blank" class="nav__headlink"><i class="material-icons">data_object </i> Full JS-Docs</a>
+    </div><div class="nav__overlay"></div></nav>
+    
+    <script>         
+        document.addEventListener("DOMContentLoaded", () => {
+            const nav = document.querySelector(".nav");
+            document.querySelector("#btnNav").addEventListener("click", () => {
+                nav.classList.add("nav--open");
+            });
+            document.querySelector(".nav__overlay").addEventListener("click", () => {
+                nav.classList.remove("nav--open");
+            });
+            document.querySelector("#btnNavclose").addEventListener("click", () => {
+                nav.classList.remove("nav--open");
+            });    
+            var all_links = document.getElementsByClassName("nav__link");            
+            var hide_menu = function() {
+                 nav.classList.remove("nav--open");
+            };    
+            for (var i = 0; i < all_links.length; i++) {
+                all_links[i].addEventListener('click', hide_menu, false);
+            }
+        });
+    </script>
+    <!-- --------------------- END MENU --------------------- -->
+
+
+<div id="main">
+   
+<h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Home</b> </img></h1>
+    
+    This page contains tutorials and the documentation for <a href="https://github.com/bramvandijk88/cacatoo">Cacatoo</a>, a javascript library that makes building spatially structured models of biology easy! The simulation you see below
+    is fully interactive, making it much easier to explore and try different parameters. If you've worked with similar models, you'll have no trouble getting started right away. If not, this manual will explain everything you need to know.
+     After you've read through this manual, you'll have no issue starting to build simple models yourself. 
+    To get started, use the menu to see more examples and step-by-step tutorials!<br><br> 
+    
+<center>
+    <table>
+        <tr>
+            <td style="padding:0px">    <div id="canvas_holder" class="cacatoo-content"></div>
+            </td>
+            <td style="width:33%">    <div id="form_holder" style="margin-top:15%"></div>
+            </td>
+            <td>   <div id="graph_holder"style="margin-top:15%">
+            </div>
+            </td>
+        </tr>
+    </table>
+</center>
+   
+</div>
+
+
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

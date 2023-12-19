@@ -1,0 +1,140 @@
+<!-- 
+
+    EXAMPLE FILE 05: Basic ODEs example
+    Odex.js is a library that can numerically solve ordinary differential equations. In 
+    Cacatoo, you can add such a system to each grid point, and couple them by diffusion!
+    
+-->
+
+<html>
+<script src="../../dist/cacatoo.js"></script> <!-- Include cacatoo library (compiled with rollup) -->
+<script src="../../lib/all.js"></script>        <!-- Load other packages -->
+
+<link rel="stylesheet" href="../../style/cacatoo.css"> <!-- Set style sheet -->
+
+<script>
+    /*-----------------------Start user-defined code ---------------------*/
+
+    let sim;
+
+    function cacatoo() {
+
+        let config = {
+            title: "Phage and bacteria in the environment",
+            description: "Phage infection dynamics with diffusion",
+            maxtime: 1000,
+            ncol: 100,
+            nrow: 100,		            // dimensions of the grid to build
+            wrap: [true, true],         // Wrap boundary [COLS, ROWS]   
+            scale: 3,				    // scale of the grid (nxn pixels per grid cell
+        }
+
+        sim = new Simulation(config)
+
+        sim.makeGridmodel("env");
+
+        sim.createDisplay_continuous({model:"env", property:"uninf", label:"Uninfected bacteria", minval:0.0, maxval:1, num_colours: 100, fill:"viridis", na_colour: 'black'})        
+        sim.createDisplay_continuous({model:"env", property:"lysogen", label:"Lysogen abundance", minval:0.0, maxval:1, num_colours: 100, fill:"viridis", na_colour: 'black'})        
+        sim.createDisplay_continuous({model:"env", property:"vir", label:"Virion abundance", minval:0.0, maxval:500.0, num_colours: 100, fill:"viridis", na_colour: 'black'})        
+        
+
+        // Define ODE for phage-bacteria dynamics
+        // dU/dt = rU(1-(U+L)/k) - bU(V/(V+vhf))
+        // dL/dt = bU(V/(V+vhf)) + rL(1-(U+L)/k) - aL
+        // dV/dt = saL - bU(V/(V+vhf)) -dV
+        let ULVdyn = function (r, k, b, vhf, a, s, d) {
+            return function (x, y) {
+                return [
+                    r * y[0] * (1-(y[0]+y[1])/k) - b * y[0] * (y[2]/(y[2]+vhf)),         // y[0] is the uninfeced bac abundance
+                    r * y[1] * (1-(y[0]+y[1])/k) + b * y[0] * (y[2]/(y[2]+vhf)) - a * y[1] ,        // y[1] is the lysogen abundance
+                    s * a * y[1] - b * y[0] * (y[2]/(y[2]+vhf)) - d * y[2]          // y[2] is the virion abundance
+                ]
+            }
+        }
+
+        // Configuration object with initial states, parameters, and diffusion rates
+        let ode_config = {
+            ode_name: "env",
+            init_states: [0, 0, 0],               // y[0], y[1] and y[2]
+            parameters: [1, 1, 1, 50, 0.3, 30, 0.01],    // r, k, b, vhf, a, s, d
+            diffusion_rates: [0.02, 0.02, 0.1]
+        }       // diffusion of y[0], y[1] and y[2]
+
+        // Attaches an ODE to all gridpoints with initial state = [0,0]. 
+        // By default, all ODEs are stored in an array in the grid point, but...
+        // If you want to access it by name, you can give a name as the final variable (here lotka)
+        sim.env.attachODE(ULVdyn, ode_config);
+
+        // Initialise the left 3 cols with predators and prey by setting the state via the named ODE 'lotka'
+        sim.env.grid[sim.env.nc / 2][sim.env.nr / 2].env.state = [1, 0, 10]
+
+        // The nextState function has 3 steps: 1) ODE integration, 2) Diffusion, 3) Update what is displayed on the grid
+        sim.env.nextState = function (i, j)       // Define the next-state function. 
+        {
+            // 1) ODE integration
+            this.grid[i][j].env.solveTimestep(0.1, opt_pos = true)
+
+
+            // 3) Update how this GP is displayed
+            let uninfected = Math.max(0, this.grid[i][j].env.state[0])       
+            let lysogens = Math.max(0, this.grid[i][j].env.state[1])   
+            let virions = Math.max(0, this.grid[i][j].env.state[2])    
+            this.grid[i][j].uninf = uninfected
+            this.grid[i][j].lysogen = lysogens
+            this.grid[i][j].vir = virions
+        }
+
+        // Custom function to count the sum of predators / preys in the grid (used in update below)
+        //sim.lotka.sumStates = function () {
+        //    let sumpred = 0
+        //    let sumprey = 0
+
+        //    for (let i = 0; i < this.nc; i++)         // i are columns
+        //        for (let j = 0; j < this.nr; j++)     // j are rows
+        //        {
+        //            sumprey += this.grid[i][j].lotka.state[0]
+        //            sumpred += this.grid[i][j].lotka.state[1]
+        //        }
+        //    return [sumpred, sumprey]
+        //}
+
+        sim.env.update = function () {
+            this.asynchronous()  // For only solving the ODEs within grid points, asynchronous or synchronous is identical.
+            this.diffuseODEstates()
+            //this.plotArray(["Predators", "Preys"],
+            //    [sim.lotka.sumStates()[0], sim.lotka.sumStates()[1]],
+            //    ["gold", "#FF00AA"],
+            //   "Total predator/prey abundance")
+            //this.plotArray(["Predators", "Preys"],
+            //    [this.grid[this.nc / 2][this.nr / 2].lotka.state[1],
+            //    this.grid[this.nc / 2][this.nr / 2].lotka.state[0],],
+            //    ["gold", "#FF00AA"],
+            //    "ODE states in central grid point")
+            //if(this.time%100==0) sim.sectionToPNG("canvases_and_graphs","LotkaVolterra")
+        }
+        sim.addButton("pause/continue", function () { sim.toggle_play() })
+        sim.addButton("step", function () { sim.step(); sim.display() })
+        sim.start()
+
+
+    }
+
+
+    /*-------------------------End user-defined code ---------------------*/
+
+</script>
+
+
+
+<body onload="cacatoo()">
+    <div class="header" id="header"></div>
+    <div id="canvases_and_graphs">
+        <div class="content" id="canvas_holder"> </div>
+        <div class="content" id="graph_holder"> </div>
+    </div>
+    <div class="content" id="form_holder"> </div>
+    
+    <div class="footer" id="footer"></div>
+</body>
+
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cacatoo manual</title><link rel="icon" type="image/png" href="images/favicon.png" />
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/menu.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">    
+    <link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
+    <script src="scripts/jquery.js"></script>    
+    <script src="scripts/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+    <script src="scripts/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+
+
+    <script>
+
+        /*-----------------------Start user-defined code ---------------------*/
+    
+        let sim; // Declare a variable named "sim" globally, so that we can access our cacatoo-simulation from wherever we need. 
+    
+        /**
+        * function cacatoo() contains all the user-defined parts of a cacatoo-model. Configuration, update rules, what is displayed or plotted, etc. It's all here.
+        */
+        function cacatoo() {
+            /*
+                1. SETUP. First, set up a configuration-object. Here we define how large the grid is, how long will it run, what colours will the critters be, etc. 
+            */
+            let config =
+            {
+                title: "Predator prey model",                 // The name of your cacatoo-simulation
+                description: "Yellow are prey. Red are predators. Black is empty.",         // And a description if you wish
+                maxtime: 1000000,                             // How many time steps the model continues to run            
+                ncol: 200,                                   // Number of columns (width of your grid)
+                nrow: 200,		                              // Number of rows (height of your grid)
+                fpsmeter: false,   
+                wrap: [true, true],                         // Wrapped boundary conditions? [COLS, ROWS]   
+                scale: 2,				                      // Scale of the grid (nxn pixels per grid point)
+                statecolours: { 'species': { 'prey': "gold", 'predator': [255, 0, 96] } },          // Colours for each state. Background (0) defaults to black. 
+            }
+    
+            /*
+                1. SETUP. (continued) Now, let's use that configuration-object to generate a new Cacatoo simulation
+            */
+            sim = new Simulation(config)                          // Initialise the Cacatoo simulation
+            sim.makeGridmodel("predprey")                              // Build a new Gridmodel within the simulation called "gol" (Game Of Life)
+            sim.initialGrid(sim.predprey, 'species', 'prey', 0.2, 'predator', 0.2)                // Set half (20%) of the Gridmodel's grid points to 1 (prey), and 20% to 2 (predator)
+            sim.createDisplay("predprey", "species", "")                      // Create a display so we can see our newly made gridmodel
+    
+            /*
+                2. DEFINING THE RULES. Below, the user defines the nextState function. This function will be applied for each grid point when we will update the grid later. 
+            */
+    
+            sim.predprey.nextState = function (i, j) {
+                let randomneigh = this.randomMoore8(this, i, j).species   // Random neighbour
+                let sumprey = this.countMoore8(this, i, j, 'species','prey')   // Random neighbour
+                if (this.grid[i][j].species == 0)                        // If empty
+                {
+                    if (this.rng.genrand_real1() < 0.1*sumprey)
+                        this.grid[i][j].species = 'prey'                     // 1 (prey) reproduces
+                }
+                else if (this.grid[i][j].species == 'prey')                   // If prey
+                {
+                    if (randomneigh == 'predator' && this.rng.genrand_real1() < 0.7)
+                        this.grid[i][j].species = 'predator'                     // 2 (pred) reproduces
+                }
+    
+                if (this.rng.genrand_real1() < 0.04)
+                    this.grid[i][j].species = 0                         // death
+            }
+    
+            /*
+                3. MAIN SIMULATION LOOP. Finally, we need to set the update-function, which is the mainwill be applied to the whole grid each time step. For now, all we will do is call "synchronous", which
+                applies the next-state function shown above to each grid point. All cells are updated at the same time, rather than in turn (for this, use the function "asynchonous")
+            */
+            sim.predprey.update = function () {
+                this.synchronous()         // Applied as many times as it can in 1/60th of a second
+                this.plotPopsizes('species', ['predator', 'prey'])
+            }
+    
+            /*
+                OPTIONAL: Now that we have everything setup, we can also add some interactive elements (buttons or sliders). See cheater.html for more examples of this. 
+            */
+            sim.addHTML("form_holder","<br><br><br><br>")
+            sim.addButton("Play/pause sim", function () { sim.toggle_play() })
+            sim.addHTML("form_holder","<br>")
+            sim.addButton("Disable/enable mix", function () { sim.toggle_mix() })
+            sim.addHTML("form_holder","<br>")
+            sim.addButton("Kill prey", function () { sim.my_custom_killprey_function() })
+            sim.my_custom_killprey_function = function () {
+                for (let i = 0; i < sim.predprey.nc; i++) for (let j = 0; j < sim.predprey.nr; j++) {
+                    if (sim.predprey.grid[i][j].species == 'prey' && this.rng.genrand_real1() < 0.9)
+                        sim.predprey.grid[i][j].species = 0
+                }
+            }
+            sim.start()
+    
+        }
+    
+    
+        /*-------------------------End user-defined code ---------------------*/
+    
+    </script>
+    
+</head>
+
+<body onload="cacatoo()">        
+   <!-- --------------------- START MENU. Couldnt get it to load dynamically, so this needs to be replaced in every HTML file upon changing --------------------- -->
+   <header class="header" id="btnNav"><buton class="header__button" id="btnNav" type="button"><i class="material-icons">menu</i></buton></header>
+    
+   <nav class="nav"><div class="nav__links">            
+    <a href="#" class="nav__head"><i id="btnNavclose" class="material-icons" style="cursor:pointer"> menu </i> Cacatoo </a>
+    <a href="index.html"  id="nav__link" class="nav__link">Home</a>
+    <a href="https://github.com/bramvandijk88/cacatoo" id="nav__link" target="_blank" class="nav__link"> Source code (Github)</a>
+    <!-- <a href="https://replit.com/@bramvandijk88/Cacatoo-IBMs-with-examples" id="nav__link" target="_blank" class="nav__link"> Replit </a> -->
+    <a href="#" class="nav__head"><i class="material-icons"> play_circle_outline </i> Examples</a>
+    <a href="example_predator_prey.html"  id="nav__link" class="nav__link"> Predator prey</a>
+    <a href="example_colony_growth.html"  id="nav__link" class="nav__link"> Colony growth</a>
+    <a href="example_mutational_jackpot.html"  id="nav__link" class="nav__link"> Mutational jackpot</a>
+    <a href="example_cooperation.html"  id="nav__link" class="nav__link"> Cooperation</a>
+    <a href="example_TEs.html"  id="nav__link" class="nav__link"> Transposon evolution</a>
+    <a href="examples_jsfiddle.html" id="nav__link" class="nav__link"> More examples (JSFiddle)</a>       
+   <a href="#" class="nav__head"><i class="material-icons"> grid_on </i> How to Cacatoo </a>
+    <a href="overview.html" class="nav__link"> Tutorials (Blog style)</a>
+    <a href="videos.html" class="nav__link"> Tutorials (Youtube)</a>                              
+    <a href="list_of_options.html" class="nav__link"> All configuration options</a>
+    <a href="populating_the_grid.html" class="nav__link"> Populating the grid</a>
+    <a href="display_and_colours.html" class="nav__link"> Display and colours</a>
+    <a href="neighbourhood_retrieval.html" class="nav__link"> Neighbourhood retrieval</a>
+    <a href="random_numbers.html" class="nav__link"> Using random numbers </a>
+    <a href="grid_events.html" class="nav__link"> Grid events</a>
+    <a href="adding_ui_elements.html" class="nav__link"> Adding UI elements</a>
+    <a href="working_with_odes.html" class="nav__link"> Working with ODEs</a>            
+    <a href="jsdocs/index.html" id="nav__headlink" target="_blank" class="nav__headlink"><i class="material-icons">data_object </i> Full JS-Docs</a>
+</div><div class="nav__overlay"></div></nav>
+
+   <script>         
+       document.addEventListener("DOMContentLoaded", () => {
+           const nav = document.querySelector(".nav");
+           document.querySelector("#btnNav").addEventListener("click", () => {
+               nav.classList.add("nav--open");
+           });
+           document.querySelector(".nav__overlay").addEventListener("click", () => {
+               nav.classList.remove("nav--open");
+           });
+           document.querySelector("#btnNavclose").addEventListener("click", () => {
+               nav.classList.remove("nav--open");
+           });    
+           var all_links = document.getElementsByClassName("nav__link");            
+           var hide_menu = function() {
+                nav.classList.remove("nav--open");
+           };    
+           for (var i = 0; i < all_links.length; i++) {
+               all_links[i].addEventListener('click', hide_menu, false);
+           }
+       });
+   </script>
+   <!-- --------------------- END MENU --------------------- -->
+
+<div id="main">
+
+    
+
+<h1 class="page-title"><a href="https://github.com/bramvandijk88/cacatoo"><img src="images/elephant_cacatoo_small.png"></a> <b>Predator-prey model</b> </img></h1>
+    
+    One of the most famous models in ecology is probably the Lotka-Volterra predator-prey model. Below, prey (orange) can grow in available spots (black), and predators (red) can grow by replacing a nearbly prey. The dynamics are similar, yet not identitcal, 
+    to the dampened oscillations known from Lotka-Volterra equations.
+    
+    <center>
+    <table>
+        <tr>
+            <td style="padding:20px">    <div id="canvas_holder"></div>
+            </td>
+            <td>    <div id="form_holder"></div>
+            </td>
+            <td> <br><br><br><br> </div>
+            </div>
+            </td>
+        </tr>
+    </table>
+    <div id="graph_holder">
+</center>
+    <br><br>
+   
+</div>
+<div id="Navigator"></div>
+
+
+<br class="clear">
+
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

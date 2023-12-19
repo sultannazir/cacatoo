@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cacatoo manual</title><link rel="icon" type="image/png" href="images/favicon.png" />
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/menu.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">    
+    <link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
+    <script src="scripts/jquery.js"></script>    
+    <script src="scripts/cacatoo.js"></script>                 <!-- Include cacatoo library (compiled with rollup) -->
+    <script src="scripts/all.js"></script>                      <!-- Include other libraries (concattenated in 1 file) -->
+</head>
+<body>
+    <!-- --------------------- START MENU. Couldnt get it to load dynamically, so this needs to be replaced in every HTML file upon changing --------------------- -->
+    <header class="header" id="btnNav"><buton class="header__button" id="btnNav" type="button"><i class="material-icons">menu</i></buton></header>
+    
+    <nav class="nav"><div class="nav__links">            
+        <a href="#" class="nav__head"><i id="btnNavclose" class="material-icons" style="cursor:pointer"> menu </i> Cacatoo </a>
+        <a href="index.html"  id="nav__link" class="nav__link">Home</a>
+        <a href="https://github.com/bramvandijk88/cacatoo" id="nav__link" target="_blank" class="nav__link"> Source code (Github)</a>
+        <!-- <a href="https://replit.com/@bramvandijk88/Cacatoo-IBMs-with-examples" id="nav__link" target="_blank" class="nav__link"> Replit </a> -->
+        <a href="#" class="nav__head"><i class="material-icons"> play_circle_outline </i> Examples</a>
+        <a href="example_predator_prey.html"  id="nav__link" class="nav__link"> Predator prey</a>
+        <a href="example_colony_growth.html"  id="nav__link" class="nav__link"> Colony growth</a>
+        <a href="example_mutational_jackpot.html"  id="nav__link" class="nav__link"> Mutational jackpot</a>
+        <a href="example_cooperation.html"  id="nav__link" class="nav__link"> Cooperation</a>
+        <a href="example_TEs.html"  id="nav__link" class="nav__link"> Transposon evolution</a>
+        <a href="examples_jsfiddle.html" id="nav__link" class="nav__link"> More examples (JSFiddle)</a>       
+       <a href="#" class="nav__head"><i class="material-icons"> grid_on </i> How to Cacatoo </a>
+        <a href="overview.html" class="nav__link"> Tutorials (Blog style)</a>
+        <a href="videos.html" class="nav__link"> Tutorials (Youtube)</a>                              
+        <a href="list_of_options.html" class="nav__link"> All configuration options</a>
+        <a href="populating_the_grid.html" class="nav__link"> Populating the grid</a>
+        <a href="display_and_colours.html" class="nav__link"> Display and colours</a>
+        <a href="neighbourhood_retrieval.html" class="nav__link"> Neighbourhood retrieval</a>
+        <a href="random_numbers.html" class="nav__link"> Using random numbers </a>
+        <a href="grid_events.html" class="nav__link"> Grid events</a>
+        <a href="adding_ui_elements.html" class="nav__link"> Adding UI elements</a>
+        <a href="working_with_odes.html" class="nav__link"> Working with ODEs</a>            
+        <a href="jsdocs/index.html" id="nav__headlink" target="_blank" class="nav__headlink"><i class="material-icons">data_object </i> Full JS-Docs</a>
+    </div><div class="nav__overlay"></div></nav>
+    
+    <script>         
+        document.addEventListener("DOMContentLoaded", () => {
+            const nav = document.querySelector(".nav");
+            document.querySelector("#btnNav").addEventListener("click", () => {
+                nav.classList.add("nav--open");
+            });
+            document.querySelector(".nav__overlay").addEventListener("click", () => {
+                nav.classList.remove("nav--open");
+            });
+            document.querySelector("#btnNavclose").addEventListener("click", () => {
+                nav.classList.remove("nav--open");
+            });    
+            var all_links = document.getElementsByClassName("nav__link");            
+            var hide_menu = function() {
+                 nav.classList.remove("nav--open");
+            };    
+            for (var i = 0; i < all_links.length; i++) {
+                all_links[i].addEventListener('click', hide_menu, false);
+            }
+        });
+    </script>
+    <!-- --------------------- END MENU --------------------- -->
+    <div id="main">
+        <h1 class="page-title">Mixing events</h1>
+        <section>
+            <header>
+            </header>
+            <article>
+                <div class="container-overview">
+                    Grid events are functions that can be called before or after updating the grid points. For example, after individuals have reproduced, you may want to 
+                    apply some random mixing by using the Toffoli-Margolus diffusion algorithm:<br><br>
+                    
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.MargolusDiffusion<span class="signature">()</span><span class="type-signature"></span></h5>
+                    <br>
+                    Other available "mixing" functions are:<br>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.perfectMix<span class="signature">()</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.diffuseStates<span class="signature">(state,rate)</span><span class="type-signature"></span></h5>
+                    <h5 style="margin-left:40px;" class="name"><span class="type-signature"></span>this.diffuseODEstates<span class="signature">() // Uses diffusion rates as defined in ODE system </span><span class="type-signature"></span></h5>                    
+            </article>
+        </section>
+        <h1 class="page-title">Custom events</h1>
+        <section>
+            <header>
+            </header>
+            <article>
+                <div class="container-overview">
+                    <br>Or you can define your own functions, for example a bottleneck where a fraction of the population dies: <br><br>
+               
+
+                    <ul><h5 class="name"><span class="signature">
+                        sim.model.bottleneck = function(fraction){
+                            <div style="margin-left:40px;">                                
+                                for (let i = 0; i < this.nc; i++) {
+                                    <div style="margin-left:40px;"> for (let j = 0; j < this.nr; j++) {
+                                        <div style="margin-left:40px;"> if(this.rng.genrand_real1() < fraction){
+                                            <div style="margin-left:40px;">  this.grid[i][j].alive = 0</div>
+                                                <div style="margin-left:40px;"> this.grid[i][j].helping_rate = 0</div>
+                                        }</div>
+                                    }</div>
+                                }
+                            </div>
+                            }
+                        </span></ul>  
+
+                       
+
+
+                    Which you can then call to kill 95% of the population within the "update" loop, every 100 time steps:
+                    <ul><h5 class="name"><span class="signature">
+                        sim.model.update = function() {
+                            <div style="margin-left:40px;">                                
+                                sim.model.synchronous()<br>
+                                if(sim.time%100==0) sim.model.bottleneck(0.95)</div>
+                            }
+                             
+                        </span></ul>  
+            </article>
+        </section>
+        
+    </div>
+    <div id="Navigator"></div>
+    <br class="clear">
+   
+    <script> prettyPrint();</script>
+    <script src="scripts/linenumber.js"> </script>
+</body>
+</html>

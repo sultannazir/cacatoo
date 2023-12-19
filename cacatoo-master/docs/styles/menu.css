@@ -1,0 +1,331 @@
+body {
+    --header-height: 50px;
+    margin: var(--header-height) 0 0 0;
+    font-family: sans-serif;
+    font-size:18px;
+    margin: 2% 2% 0% 2%;
+    
+    background: none;
+    padding: 5px 15px;
+}
+
+.header{
+    position:fixed;
+    height: var(--header-height);
+    top:0;
+    left:0;
+    width:100%;
+    background-color: rgb(111, 146, 170);
+    padding: 7px 10px;
+}
+
+.header__button {
+    width: var(--header-height);
+    font-size: 36px;
+    background: none;
+    outline: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+.header__button > i {
+    font-size: 36px;
+}
+
+
+h1 {
+    color: rgb(58, 92, 114);
+}
+
+.nav__links {
+    position:fixed;
+    top:0;
+    left:0;
+    z-index:1000;
+    height:100%;
+    width:300px;
+    background:white;
+    transform: translateX(-310px);
+    transition: transform 0.3s;
+    font-weight:bold;
+    font-size:16px;
+    padding: 10px 5px;    
+}
+
+::-webkit-scrollbar {  
+  background: transparent;  /* Optional: just make scrollbar invisible */
+}
+/* Optional: show position indicator in red */
+::-webkit-scrollbar-thumb {
+  background: rgb(107, 159, 194);
+}
+
+.nav--open .nav__links {
+    transform: translateX(0);
+    overflow-y: scroll;
+    box-shadow: 0 0 30px rgba(0,0,0,0.2);
+}
+
+.nav__head {
+    display: flex;
+    align-items: center;
+    color:rgb(58, 92, 200);
+    font-weight:bold;
+    font-size: 15 px;
+    text-decoration:none;
+    padding: 5px 5px;
+    cursor:default;
+}
+
+.nav__head > i{
+    margin-right: 15px;
+    color: rgb(75, 101, 179);
+    font-size: 36px;
+}
+
+.nav__headlink {
+    display: flex;
+    align-items: center;
+    color: rgb(75, 101, 179);
+    font-weight:bold;
+    font-size: 15 px;
+    text-decoration:none;
+    padding: 5px 5px;
+}
+
+.nav__headlink > i{
+    margin-right: 15px;
+    color:rgb(58, 92, 200);
+    font-size: 36px;
+}
+
+.nav__headlink:hover{
+    background:#dadaff;
+}
+
+
+.nav__link {
+    display: flex;
+    color: rgb(75, 101, 179);
+    align-items: center;
+    font-weight:bold;
+    font-size: 13 px;
+    text-decoration:none;
+    padding: 5px 25px;
+}
+
+.nav__link > i {
+    margin-right: 15px;
+}
+
+
+.nav__link:hover{
+    background:#dadaff;
+}
+
+.nav__overlay {
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+    z-index: 999;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(3px);
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.nav--open .nav__overlay {
+    visibility: visible;
+    opacity: 1;
+}
+
+
+
+@media only screen and (hover: none) and (pointer: coarse){    
+    body{
+        margin: var(--header-height) 0 0 0;
+        font-family: sans-serif;
+        font-size:18px;
+        margin: 2% 2% 0% 2%;
+        background: none;
+        padding: 64px 15px;
+    }
+    .header{
+        position:fixed;
+        height: 96px;
+        top:0;
+        left:0;
+        width:100%;
+        background-color: rgb(111, 146, 170);
+        padding: 7px 10px;
+    }
+    
+	.header__button {
+		width: var(--header-height);
+        font-size: 64px;
+        background: none;
+        margin-left: 15px;
+        outline: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+	}
+    .header__button > i {
+		width: var(--header-height);
+        font-size: 64px;
+        background: none;
+        outline: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+	}
+    .nav__links {
+        position:fixed;
+        top:0;
+        left:0;
+        z-index:1000;
+        height:100%;
+        width:75%;
+        background:white;
+        transform: translateX(-100%);
+        transition: transform 0.3s;
+        font-weight:bold;
+        font-size:30px;
+        padding: 5px 5px;    
+    }
+    .nav__head > i{
+        margin-right: 15px;
+        font-size: 64px;
+    }
+}
+
+.cacatoo-content {
+    text-align: center;
+    
+    padding: 10px;
+  }
+.grid-holder{
+    display: inline-block;
+    margin:10px;
+  }
+.canvas_holder{
+    text-align:center;
+}
+.canvas-cacatoo{
+    display: inline-block;
+    border: 4px solid black;
+    border-radius: 8px 8px 8px 8px;
+    margin:10px;
+  }
+  .canvas-cacatoo-round{
+    display: inline-block;
+    border: 4px solid black;
+    border-radius: 50% 50% 50% 50%;
+    margin:10px;
+  }
+
+  /* The numeric form */
+input[type=number] { 
+    background-color: rgb(217, 234, 245);
+    border: 2px solid rgb(177, 209, 231);
+    font-size:12px;
+  }
+    /* The slider itself */
+    .slider {
+      -webkit-appearance: none;  /* Override default CSS styles */
+      appearance: none;
+      width: 50%; /* Full-width */
+      cursor: pointer;
+      height: 8px; /* Specified height */
+      background: rgb(177, 209, 231);
+      outline: none; /* Remove outline */
+      opacity: 0.5; /* Set transparency (for mouse-over effects on hover) */
+      -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+      transition: opacity .2s;
+    }
+    
+    /* The number input */
+    .number {
+      -webkit-appearance: none;  /* Override default CSS styles */
+      appearance: none;
+      width: 50%; /* Full-width */
+      margin-top:10px;
+      height: 30px; /* Specified height */
+      background: #FFFFFF; /* Grey background */  
+      opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+      -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+      transition: opacity .2s;
+    }
+  /* Mouse-over effects */
+  .slider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+  }
+  
+  .form-container{  /* Sliders and buttons */
+    display: inline-block;
+    margin:10px;
+  }
+  
+  .graph-holder{
+    margin: 10px;    
+    display: inline-block;    
+    width:80%;
+    padding:10px;
+  }
+
+/* The button itself */
+button {
+    background-color: rgb(217, 234, 245);
+    border-radius: 10px; 
+    border: 2px solid rgb(177, 209, 231);;
+    padding:7px;
+    font-size:12px;
+    margin:10px;
+    width:128px;
+  }
+  
+  .example_card{    
+    width: 220px;
+    height: 220px;
+    background-color: rgb(151, 183, 204);
+    box-shadow: rgba(100, 100, 111, 0.1) 20px 7px 29px 0px;
+    font-weight: bold;
+    color: black;
+    font-size:13px;     
+    line-height:25px;   
+    margin: 25px;    
+    padding: 20px;    
+    padding-bottom:40px;
+    padding-top:10px;
+    border-radius: 0px 0px 0px 0px;
+    display:inline-block;   
+    transition: all 100ms ease-out 200ms; 
+    transition-delay: 0s;
+  }
+  .example_card_img{    
+    width: 100%;
+    height: 100%;       
+    border-radius: 0px 0px 0px 0px;
+    background-position: 45% 50%;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+  .example_card:hover{        
+    background-color: rgb(151, 183, 204);
+    font-size:12px;    
+    color:black;
+    border-radius: 30px 0px 30px 0px;
+    box-shadow: rgba(100, 100, 111, 0.3) 0px 0px 29px 0px;
+  }
+   .example_card:active{        
+    background-color: rgb(151, 183, 204);
+    font-size:12px;
+    padding-top: 11px;
+    height: 199px;    
+    color:black;
+    box-shadow: rgba(100, 100, 111, 0.3) 0px 0px 29px 0px;
+  }
+  
